@@ -18,12 +18,15 @@
 		} else if (!empty($_POST["PatientUserNumber"])){
 			$patientID = test_input($_POST["PatientUserNumber"]);
 		} else {
-			$patientName = test_input($_POST["PatientLastName"]);
+			$patientLastName = test_input($_POST["PatientLastName"]);
+			$patientFirstName = test_input($_POST["PatientFirstName"]);
 			
 			//Checking for invalid characters
 			if (!preg_match("/^[a-zA-Z]*$/", $patient))
 			{
 				$patientNameErr = "Only letters allowed";
+			}else{
+				$patientID = Statement::getPatientID(connect(), $patientLastName, $patientFirstName);
 			}
 		}
 		
@@ -33,6 +36,11 @@
 			$tableErr = "Table type is required";
 		} else {
 			$table = test_input($_POST["table"]);
+		}
+		
+		if (!($tableErr=="" and $patientNameErr=="" $patientErr==""))
+		{
+			$table = get_table();
 		}
 	}
 	
@@ -53,12 +61,8 @@
 	
 	function get_data($conn)
 	{
-		$sql = 'Select * from'.$table.'where PatientUid=';
-		if ($patientID=="")
-		{
-			$sql .= 
-		}
-		$result = SQL_Statement.select($conn, $table, $patient);
+		$sql = 'Select * from'.$table.'where PatientUid='.$patientID;
+		$result = SQL_Statement::select($conn, $table, $patient);
 		return $result;
 	}
 	
@@ -74,10 +78,10 @@
 <html>
 <body>
 
-//Form for the user (presumably the doctor) to select the patient and the data for that patient
+<!--Form for the user (presumably the doctor) to select the patient and the data for that patient
 //The form will use the $_POST method to send the information to the same page
 //Using the htmlspecialchars function to prevent javascript injection
-//Patient can be found by userID or Last Name
+//Patient can be found by userID or Last Name-->
 <p><span class = "error"> * required field.</span></p>
 <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
 	Patient First Name:<br>
