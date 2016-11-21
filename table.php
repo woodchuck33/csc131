@@ -4,6 +4,7 @@
 	$user = 'reconnect_user';
 	$db = 'reconnect';
 	$pass = 'reconnect_db';
+	private $conn;
 	
 	//$_POST values
 	$patientID = $patientFirstName = $patientLastName = $table = "";
@@ -21,7 +22,7 @@
 			$patientLastName = test_input($_POST["PatientLastName"]);
 			$patientFirstName = test_input($_POST["PatientFirstName"]);
 			
-			//Checking for invalid characters
+			//Checking for invalid characters and then getting the PatientID
 			if (!preg_match("/^[a-zA-Z]*$/", $patient))
 			{
 				$patientNameErr = "Only letters allowed";
@@ -38,14 +39,15 @@
 			$table = test_input($_POST["table"]);
 		}
 		
+		//If no errors, get the table
 		if (!($tableErr=="" and $patientNameErr=="" $patientErr==""))
 		{
-			$table = get_table();
+			$displayTable = get_table();
 		}
 	}
 	
 	
-	function test_input($data)
+	private function test_input($data)
 	{
 		$data = trim($data);
 		$data = stripslashes($data);
@@ -53,24 +55,83 @@
 		return $data;
 	}
 	
-	function connect()
+	private function connect()
 	{
 		$conn = SQL_Connect($host, $user, $db, $pass);
 		return $conn;
 	}
 	
-	function get_data($conn)
+	private function get_data()
 	{
-		$sql = 'Select * from'.$table.'where PatientUid='.$patientID;
+		$sql = 'Select * from'.$table.'where PatientUID='.$patientID;
 		$result = SQL_Statement::select($conn, $table, $patient);
 		return $result;
 	}
 	
-	function get_table()
+	//Pre-Condition: $table is instantiated
+	private function get_table()
 	{
-		$conn = connect();
-		$result = get_data($conn);
-		
+		$tblScript = "";
+		if !($conn) $conn = connect();
+		$result = get_data();
+		switch ($table)
+		{
+			case "all":
+				$tblScript=getOverview($result);
+				break;
+			case "diagnosis":
+				$tblScript=getDiagnosis($result);
+				break;
+			case "medication":
+				$tblScript=getMedication($result);
+				break;			
+			case "sleep":
+				$tblScript=getSleep($result);
+				break;			
+			case "heart":
+				$tblScript=getHeart($result);
+				break;
+			//Default is $table = "activity"
+			default:
+				$tblScript=getActivity($result);
+		}
+	}
+	
+	//Pre-Condition: $data is a mysqli return object
+	private function getOverview($data)
+	{
+		$row=$data->fetch_array(MYSQLI_ASSOC);
+		$tblScript="<tr><th>Firstname</th><th>Lastname</th><th>Middle</th><th>PatientID</th><th>Email</th>
+			<th>Phone Number</th><th>Medication</th><th>Diagnosis</th><th>Doctor</th></tr>";
+		$tblScript.="<tr><td>".$row["Fname"]."</td><td>".$row["Lname"]."</td><td>".$row["Mname"]."</td><td>".
+			$row["PatientUID"]."</td><td>".$row["Email"]."</td><td>".$row["PhoneNumber"]."</td><td>".$row["Medicine"].
+			"</td><td>".$row["Diagnosis"]."</td><td>".$row["Doctor"]."</td></tr>";
+		return $tblScript;
+	}
+	
+	//Pre-Condition: $data is a mysqli return object
+	private function getDiagnosis($data)
+	{
+		$row=$data->fetch_array(MYSQLI_ASSOC);
+		$tableScript="<tr><th>PatientID</th><th>Diagnosis</th><th>Severity</th></tr>";
+		$tableScript.="<tr><td>".$row["PatientUID"]."</td><td>".$row["Diagnosis"]."</td><td>".$row["Severity"]."</td></tr>";
+		return $tableScript;
+	}
+	
+	//Pre-Condition: $data is a mysqli return object
+	private function getMedication($data)
+	{
+		$row=$data->fetch_array(MYSQLI_ASSOC);
+		$tableScript="<tr><th>PatientID</th><th>Medication</th><th>DoctorID</th><th>Dosage</th></tr>";
+		$tableScript.="<tr><td>".$row["PatientUID"]."</td><td>".$row["Medication"]."</td><td>".$row["DoctorUID"]."</td><td>".$row["Dosage"]."</td></tr>";
+		return $tableScript;
+	}
+	
+	//Pre-Condition: $data is a mysqli return object
+	private function getSleep($data)
+	{
+		$row=$data->fetch_array(MYSQLI_ASSOC);
+		$tableScript="<tr><th></th></tr>";
 	}
 ?>
 
